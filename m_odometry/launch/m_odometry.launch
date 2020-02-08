@@ -1,0 +1,30 @@
+ <launch>
+    <arg name="x" />
+    <arg name="y" />
+    <arg name="z" />
+
+    <arg name="robot_name"  />
+    <arg name="world_frame" />
+    <arg name="freq" />
+    <arg name="span"/>
+    <arg name="radius" />
+    <arg name="simul" />
+    
+    <!--1 m_robot x y z 0-->
+    <node name="m_odometry" pkg="m_odometry" type="m_odometry" respawn="false" output="screen">
+        <param name="x" value="$(arg x)"/>
+        <param name="y" value="$(arg y)"/>
+        <param name="z" value="$(arg z)"/>
+        
+        <param name="robot_name" value="$(arg robot_name)"/>
+        <param name="world_frame" value="$(arg world_frame)"/>
+        <param name="freq"  value="$(arg freq)"/>
+        <param name="span"  value="$(arg span)"/>
+        <param name="radius" value="$(arg radius)"/>
+        <param name="simul" value="$(arg simul)"/>
+    
+        <remap from="sub_joint_states" to="/m_robot/joint_states" />
+        <remap from="pub_odometry" to="/m_robot/odometry"/>
+    </node> 
+
+</launch>

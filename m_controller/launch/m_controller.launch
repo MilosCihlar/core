@@ -1,0 +1,24 @@
+<launch>
+    <arg name = "radius" />
+    <arg name = "freq" />
+    <arg name = "span" />
+
+    <arg name="x" />
+    <arg name="y" />
+    <arg name="z" />
+
+    <node name="m_control" pkg="m_controller" type="m_controller" respawn="false" output="screen" >
+        <param name="radius" value="$(arg radius)"/>
+        <param name="freq" value="$(arg freq)" />
+        <param name="span" value="$(arg span)" />
+
+        <param name="x" value="$(arg x)" />
+        <param name="y" value="$(arg y)" />
+        <param name="z" value="$(arg z)" />
+
+        <remap from="s_velocity_cmd" to="/m_robot/velocity_cmd" />
+        <remap from="p_leftJoint_cmd" to="/m_robot/left_wheel_position_controller/command" />
+        <remap from="p_rightJoint_cmd" to="/m_robot/right_wheel_position_controller/command" />        
+    </node>
+
+</launch>
