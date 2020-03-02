@@ -1,0 +1,26 @@
+<launch>
+    <arg name = "ratio" default="0.25"/>   
+
+    <arg name = "convergency" default="60" />  <!-- < 0,99 > Percentage of free cells around point-->
+    <arg name = "tolerance" default ="5" />    <!-- <0, tolerance> is free space (max 99)-->
+    <arg name = "amount" default="10" />       <!-- Depend on resolution of map and size of robot: resolution*amount should be straight span of robot; resolution is 0.05m-->
+    
+    <arg name = "freq" default="1"/>
+    <arg name = "simul" default="true" />
+    <arg name = "world_frame" default="simulation" />
+
+    <node name="m_exploration" pkg="m_exploration" type="m_exploration" respawn="false" output="screen" >
+        <param name="ratio" value="$(arg ratio)"/>
+        <param name="tolerance" value="$(arg tolerance)"/>
+        <param name="convergency" value="$(arg convergency)"/>
+        <param name="amount" value="$(arg amount)"/>
+        <param name="freq" value="$(arg freq)" />
+        <param name="simul" value="$(arg simul)" />
+        <param name="world_frame" value="$(arg world_frame)" />
+
+        <remap from="s_odometry" to="/m_robot/odometry" />
+        <remap from="s_map" to="/map" />
+        <remap from="p_trajectory" to="/m_robot/trajectory" />        
+    </node>
+
+</launch>

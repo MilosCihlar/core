@@ -122,14 +122,14 @@ int main(int argc, char **argv)
 
             msg_odometry.header.seq = odom.getNumber();
 
-            if(simul)
-            {
-                tf::TransformBroadcaster broadcaster;
-                tf::Transform transform;
-                transform.setOrigin( tf::Vector3(pos[X], pos[Y], 0.0) );
-                transform.setRotation( tf::Quaternion(0, 0, pos[Theta], 1) );
-                broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), world_frame, robot_name));
-            }
+           // if(simul)
+           // {
+           //     tf::TransformBroadcaster broadcaster;
+           //     tf::Transform transform;
+           //     transform.setOrigin( tf::Vector3(pos[X], pos[Y], 0.0) );
+           //     transform.setRotation( tf::Quaternion(0, 0, pos[Theta], 1) );
+           //     broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), world_frame, robot_name));
+           // }
 
             pub_odom.publish(msg_odometry);
         }
