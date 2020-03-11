@@ -170,7 +170,7 @@ void Tree::getTrajectory(int* traj) const
 
 }
 
-bool Tree::haveNodeNeighbor(const int node) const //zmena
+bool Tree::haveNodeNeighbor(const int node) const
 {
 	if (numberPoint >= node)
 	{
@@ -189,7 +189,7 @@ bool Tree::haveNodeNeighbor(const int node) const //zmena
 	return false;
 }
 
-bool Tree::freeNeighbor() const  // zmena
+bool Tree::freeNeighbor() const
 {
 	for (int node = 0; node <= numberPoint; node++)
 	{
@@ -208,7 +208,7 @@ bool Tree::freeNeighbor() const  // zmena
 }
 
 
-int Tree::getFirstNeighbor(const int node) const // zmena
+int Tree::getFirstNeighbor(const int node) const
 {
 	int max = bond[node][0];
 	for (int neigh = 1; neigh <= max; neigh++)
@@ -223,7 +223,7 @@ int Tree::getFirstNeighbor(const int node) const // zmena
 	return -1;
 }
 
-int Tree::getNeighbor(const int node, const int pos) const // zmena 
+int Tree::getNeighbor(const int node, const int pos) const
 {
 	if (numberPoint >= node)
 	{
@@ -233,8 +233,8 @@ int Tree::getNeighbor(const int node, const int pos) const // zmena
 		{
 			if (bond[node][i] == -1)
 				max += 1;
-
-			count += 1;
+			else
+				count += 1;
 		}
 
 		if (count >= pos)
@@ -245,7 +245,7 @@ int Tree::getNeighbor(const int node, const int pos) const // zmena
 	return -1;
 }
 
-void Tree::removeNeighbor(const int node, const int neighbor) // zmena
+void Tree::removeNeighbor(const int node, const int neighbor)
 {
 	if (numberPoint >= node)
 	{
@@ -255,6 +255,7 @@ void Tree::removeNeighbor(const int node, const int neighbor) // zmena
 			if (bond[node][i] == neighbor)
 			{
 				bond[node][i] = -1;
+				bond[node][0] = bond[node][0] - 1;
 			}
 			else if (bond[node][i] == -1)
 				max += 1;
@@ -272,8 +273,8 @@ int Tree::getNumberNeighbor(const int node) const // zmena
 		{
 			if (bond[node][i] == -1)
 				max += 1;
-
-			count += 1;
+			else
+				count += 1;
 		}
 
 		return count;

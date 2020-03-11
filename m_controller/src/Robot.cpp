@@ -79,6 +79,9 @@ void Robot::setVelocity(const Position& vel)
     double x = velocity.getPoint().getX();
     double gama = velocity.getAngle().getZ();
 
+	velocity.setPoint(vel.getPoint());
+	velocity.setAngle(vel.getAngle());
+
     right.setVelocity(x + (span/2)*gama);
     left.setVelocity(x - (span/2)*gama);
 }
@@ -101,7 +104,6 @@ Wheel& Robot::getLeftWheel()
 {
         return left;
 }
-
 Wheel& Robot::getRightWheel()
 {
         return right;

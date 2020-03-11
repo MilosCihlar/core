@@ -46,9 +46,31 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(rate);
   while (ros::ok())
   {
-    controller.setpointFilter();
-    //controller.PSDF(); 
-    controller.sendCommand();
+	int type = 0;
+	if(controller.getManual())
+	{
+		type = 1;
+	}
+	else if(controller.getAutonomous())
+	{
+		type = 2;
+	}
+
+  	switch(type)
+	{
+		case(0):
+			controller.setLastTime();
+			break;
+		case(1):
+			controller.manualControl();
+			break;
+		case(2):
+			controller.autonomousControl();
+			break;
+		default:
+			controller.setLastTime();
+			break;
+	}
 
     ros::spinOnce();
     loop_rate.sleep();

@@ -13,7 +13,9 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Path.h"
 
-/*TIP: Pridat rozmery robota aby algoritmus mohl pocitat i s velikosti*/
+/*TIP: Pridat rozmery robota aby algoritmus mohl pocitat i s velikosti - castecne vyreseno launch filem*/
+/*TIP: Vizualizovat strom, ne jen cestu*/
+/*UPOZORNENI: trajektorie se posila v intervalu 0.2 sekundy (pevne zadano v sendTrajectory) */
 /*BUG: Add node pocita s toleranci */
 class Exploration
 {
@@ -28,20 +30,22 @@ private:
 	Point* trajectory;
 
 	double param;
+	double speed;
+	std::string worldFrame;
 
 	ros::Subscriber s_odom;
 	bool odometryFlag;
 	ros::Subscriber s_map;
 	ros::Publisher p_trajectory;
-
-	ros::Publisher p_marker; 
+	ros::Publisher p_marker;
+	ros::Publisher p_marker_array;
 private:
 	int findNearstNode(const Point& point);
 	int* addNumberVisualization(int* array, const int length, const int i) const; 
 public:
 	/*C'tors adn D'tors*/
-	Exploration(ros::NodeHandle *nh, double param);
-	Exploration(double param);
+	Exploration(ros::NodeHandle *nh, double param, double speed, std::string world_frame);
+	Exploration(double param, double speed, std::string world_frame);
 	~Exploration();
 
 	/*Methods*/
@@ -53,8 +57,9 @@ public:
 	void addNode(const Point& point, const int tolerance = 0, const int amount = 0);
 	void sendTrajectory();
 
-	void Visualize(const std::string) const;
-	void visualizeTrajectory(const std::string world_frame) const;
+	/*Visualize on Rviz*/
+	void Visualize() const;
+	void visualizeTrajectory() const;
 
 	/*Setter and Getter*/
 	void setParam(const double p);

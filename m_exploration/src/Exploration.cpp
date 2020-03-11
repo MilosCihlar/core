@@ -6,19 +6,22 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Path.h"
 #include "visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
 
 
-Exploration::Exploration(ros::NodeHandle *nh, double param):tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr), odometryFlag(false)
+Exploration::Exploration(ros::NodeHandle *nh, double param, double speed, std::string world_frame)
+:tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr), odometryFlag(false), speed(speed), worldFrame(world_frame)
 {
 	s_odom = nh->subscribe("s_odometry", 1, &Exploration::callbackNewStartPoint, this);
 	s_map = nh->subscribe("s_map", 1, &Map::callbackNewMap, &maps);
 	p_trajectory = nh->advertise<nav_msgs::Path>("p_trajectory", 1);
 	p_marker = nh->advertise<visualization_msgs::Marker>("visualization_marker", 10);
-
+	p_marker_array = nh->advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
 	nodes = new Point[1];
 }
 
-Exploration::Exploration(double param) :tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr)
+Exploration::Exploration(double param, double speed, std::string world_frame)
+:tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr), speed(speed), worldFrame(world_frame)
 {
 	nodes = new Point[1];
 }
@@ -120,7 +123,7 @@ void Exploration::addNode(const Point& point,const int tolerance, const int amou
 			//std::cout << "Novy node: " << newNode.getX() << " " << newNode.getY() << std::endl;
 			tree.addPoint(length + 1, nearst);		
 			//std::cout << "Node: " << length + 1 << " Soused: " << nearst << std::endl << std::endl;
-			tree.print();
+			//tree.print();
 			//std::cout <<  std::endl;
 		}
 	}
@@ -148,27 +151,30 @@ int* Exploration::addNumberVisualization(int* array, const int length, const int
 	return array;
 }
 
-void Exploration::Visualize(const std::string world_frame) const
+void Exploration::Visualize() const
 {
-	visualization_msgs::Marker n, points, line_strip;
-    line_strip.header.frame_id = points.header.frame_id = n.header.frame_id = world_frame;
-    line_strip.header.stamp = points.header.stamp = n.header.stamp = ros::Time::now();
-    line_strip.ns = points.ns = n.ns = "Tree";
-    line_strip.action = points.action = n.action = visualization_msgs::Marker::ADD;
-    line_strip.pose.orientation.w = points.pose.orientation.w = n.pose.orientation.w = 1.0;
 
-    line_strip.id = 0;
-	points.id = 1; 
+	visualization_msgs::Marker n, points;
+	points.header.frame_id = n.header.frame_id = worldFrame;
+	points.header.stamp = n.header.stamp = ros::Time::now();
+	points.ns = n.ns = "StartEndPoint";
+	points.action = n.action = visualization_msgs::Marker::ADD;
+	points.pose.orientation.w = n.pose.orientation.w = 1.0;
+
+	points.id = 1;
 	n.id = 2;
-
 	n.type = visualization_msgs::Marker::POINTS;
+	points.type = visualization_msgs::Marker::POINTS;
 
-	n.scale.x = 0.03;
-    n.scale.y = 0.03;
+	n.scale.x = 0.04;
+    n.scale.y = 0.04;
+	points.scale.x = 0.1;
+	points.scale.y = 0.1;
 
-	// Nodes are red
 	n.color.r = 1.0;
     n.color.a = 1.0;
+	points.color.g = 1.0f;
+	points.color.a = 1.0;
 
 	for (int i = 0; i < tree.getNumberPoint(); i++)
 	{
@@ -179,68 +185,163 @@ void Exploration::Visualize(const std::string world_frame) const
 	  	n.points.push_back(n1);
 	}
 
-	p_marker.publish(n);
+	Tree copyTree = tree;
+	int* nextStart = new int[2];
+	nextStart[0] = 1;
+	nextStart[1] = 0;
+	int node = 0;
+	int next = 0;
+	int l = 0;
 
-
-}
-
-void Exploration::setParam(const double p)
-{
-	param = p;
-}
-
-
-
-void Exploration::sendTrajectory()
-{
-
-	int l = tree.getNumberOfNode();
-	finalBranch = new int[l];
-	tree.getTrajectory(finalBranch);
-
-	for (int i = 0; i < l; i++)
+	while (true)
 	{
-		std::cout << finalBranch[i] << " ";
+		while (next != -1)
+		{
+			next = copyTree.getFirstNeighbor(node);
+			if (next != -1)
+			{
+				if (copyTree.getNumberNeighbor(node) >= 2)
+				{
+					int* copy = new int[nextStart[0]+1];
+					for (int i = 0; i < nextStart[0] + 1; i++)
+					{
+						copy[i] = nextStart[i];
+					}
+					delete[] nextStart;
+					nextStart = new int[copy[0] + 2];
+					for (int i = 0; i < copy[0] + 1; i++)
+					{
+						nextStart[i] = copy[i];
+					}
+					nextStart[0] = copy[0] + 1;
+					nextStart[copy[0] + 1] = node;
+
+					delete[] copy;
+				}
+
+				copyTree.removeNeighbor(node, next);
+				copyTree.removeNeighbor(next, node);
+
+				node = next;
+			}
+		}
+		next = 0;
+
+		node = nextStart[nextStart[0]];
+
+		int* copy = new int[nextStart[0]];
+		for (int i = 0; i < nextStart[0]; i++)
+		{
+			copy[i] = nextStart[i];
+		}
+		delete[] nextStart;
+		nextStart = new int[copy[0]];
+		for (int i = 0; i < copy[0]; i++)
+		{
+			nextStart[i] = copy[i];
+		}
+		nextStart[0] = copy[0] - 1;
+		delete[] copy;
+
+		if (nextStart[0] == 0)
+		{
+			break;
+		}
+
+		l += 1;
 	}
-	std::cout << std::endl;
-	
-}
+	delete[] nextStart;
 
-void Exploration::visualizeTrajectory(const std::string world_frame) const
-{
-	visualization_msgs::Marker line_strip, points;
-    line_strip.header.frame_id = points.header.frame_id = world_frame;
-    line_strip.header.stamp = points.header.stamp = ros::Time::now();
-    line_strip.ns  = points.ns  = "Tree";
-    line_strip.action = points.action = visualization_msgs::Marker::ADD;
-    line_strip.pose.orientation.w = points.pose.orientation.w = 1.0;
-
-    line_strip.id = 0;
-	points.id = 1;
-
-	line_strip.type = visualization_msgs::Marker::LINE_STRIP;
-	points.type = visualization_msgs::Marker::POINTS;
-
-    line_strip.scale.x = 0.025;
-	points.scale.x = 0.1;
-	points.scale.y = 0.1;
-
-    // Line list is red
-    line_strip.color.r = 1.0;
-    line_strip.color.a = 1.0;
-
-	points.color.g = 1.0f;
-	points.color.a = 1.0;
-
-	int len = tree.getNumberOfNode();
-	for (int i = 0; i < len; i++)
+	visualization_msgs::MarkerArray tre;
+	tre.markers.resize(l + 1);
+	for (int i = 0; i <= l; ++i)
 	{
-	  	geometry_msgs::Point n1;
-      	n1.x = nodes[finalBranch[i]].getX();
-      	n1.y = nodes[finalBranch[i]].getY();
-      	n1.z = 0;
-	  	line_strip.points.push_back(n1);
+
+		tre.markers[i].header.frame_id = worldFrame;
+		tre.markers[i].header.stamp = ros::Time::now();
+		tre.markers[i].ns = "Tree";
+		tre.markers[i].action = visualization_msgs::Marker::ADD;
+		tre.markers[i].pose.orientation.w = 1.0;
+		tre.markers[i].id = i;
+		tre.markers[i].type = visualization_msgs::Marker::LINE_STRIP;
+		tre.markers[i].scale.x = 0.03;
+		tre.markers[i].color.r = 1.0;
+		tre.markers[i].color.a = 1.0;
+
 	}
+
+	Tree copyT = tree;
+	nextStart = new int[2];
+	nextStart[0] = 1;
+	nextStart[1] = 0;
+	node = 0;
+	next = 0;
+	l = 0;
+
+	while (true)
+	{
+		while (next != -1)
+		{
+			geometry_msgs::Point p;
+			p.x = nodes[node].getX();
+			p.y = nodes[node].getY();
+			p.z = 0;
+			tre.markers[l].points.push_back(p);
+			next = copyT.getFirstNeighbor(node);
+			if (next != -1)
+			{
+				if (copyT.getNumberNeighbor(node) >= 2)
+				{
+					int* copy = new int[nextStart[0]+1];
+					for (int i = 0; i < nextStart[0] + 1; i++)
+					{
+						copy[i] = nextStart[i];
+					}
+					delete[] nextStart;
+					nextStart = new int[copy[0] + 2];
+					for (int i = 0; i < copy[0] + 1; i++)
+					{
+						nextStart[i] = copy[i];
+					}
+					nextStart[0] = copy[0] + 1;
+					nextStart[copy[0] + 1] = node;
+
+					delete[] copy;
+				}
+
+				copyT.removeNeighbor(node, next);
+				copyT.removeNeighbor(next, node);
+				node = next;
+			}
+		}
+
+		l += 1;
+		next = 0;
+
+		node = nextStart[nextStart[0]];
+
+		int* copy = new int[nextStart[0]];
+		for (int i = 0; i < nextStart[0]; i++)
+		{
+			copy[i] = nextStart[i];
+		}
+		delete[] nextStart;
+		nextStart = new int[copy[0]];
+		for (int i = 0; i < copy[0]; i++)
+		{
+			nextStart[i] = copy[i];
+		}
+		nextStart[0] = copy[0] - 1;
+		delete[] copy;
+
+		if (nextStart[0] == 0)
+		{
+			break;
+		}
+
+	}
+
+	delete[] nextStart;
 
 	geometry_msgs::Point p;
 	p.x = start.getX();
@@ -254,6 +355,79 @@ void Exploration::visualizeTrajectory(const std::string world_frame) const
 	points.points.push_back(p);
 
 	p_marker.publish(points);
+	p_marker.publish(n);
+	p_marker_array.publish(tre);
+}
+
+void Exploration::setParam(const double p)
+{
+	param = p;
+}
+
+
+
+void Exploration::sendTrajectory()
+{
+	static int id = 0;
+	id += 1;
+
+	int l = tree.getNumberOfNode();
+	finalBranch = new int[l];
+	tree.getTrajectory(finalBranch);
+	nav_msgs::Path path;
+
+	for (int i = 0; i < l-1; i++)
+	{
+		double vx = nodes[finalBranch[i+1]].getX() - nodes[finalBranch[i]].getX();
+		double vy = nodes[finalBranch[i+1]].getY() - nodes[finalBranch[i]].getY();
+		double D = maps.distance(nodes[finalBranch[i]], nodes[finalBranch[i+1]]);
+		double time = D/speed;
+		double param = 1/(time/0.02);
+
+		for (double t = 0; t < 1; t = t + param)
+		{
+			Point p(nodes[finalBranch[i]].getX() + vx*t,  nodes[finalBranch[i]].getY() + vy * t, 0);
+			geometry_msgs::PoseStamped pose;
+			pose.pose.position.x = p.getX();
+			pose.pose.position.y = p.getY();
+			pose.pose.position.z = 0;
+			path.poses.push_back(pose);
+		}
+	}
+	path.header.seq = id;
+	path.header.frame_id = worldFrame;
+
+	p_trajectory.publish(path);
+}
+
+void Exploration::visualizeTrajectory() const
+{
+	visualization_msgs::Marker line_strip, points;
+    line_strip.header.frame_id = points.header.frame_id = worldFrame;
+    line_strip.header.stamp = points.header.stamp = ros::Time::now();
+    line_strip.ns  = points.ns  = "Trajectory";
+    line_strip.action = points.action = visualization_msgs::Marker::ADD;
+    line_strip.pose.orientation.w = points.pose.orientation.w = 1.0;
+
+    line_strip.id = 0;
+
+	line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+	
+    line_strip.scale.x = 0.025;
+    // Line list is red
+    line_strip.color.a = 1.0;
+
+	int len = tree.getNumberOfNode();
+
+	for (int i = 0; i < len; i++)
+	{
+	  	geometry_msgs::Point n1;
+      	n1.x = nodes[finalBranch[i]].getX();
+      	n1.y = nodes[finalBranch[i]].getY();
+      	n1.z = 0;
+	  	line_strip.points.push_back(n1);
+	}
+
     p_marker.publish(line_strip);
 
 }

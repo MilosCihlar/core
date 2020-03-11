@@ -17,8 +17,7 @@ int main(int argc, char **argv)
     ROS_INFO("/***/ Start m_exploratin node /***/");
   	ros::NodeHandle nh;
 
-  	// Set qrequency from launch file
-
+  	// Settings
 	double ratio = 0;
 	nh.getParam("m_exploration/ratio", ratio);
 	double convergency = 0;
@@ -27,12 +26,14 @@ int main(int argc, char **argv)
 	nh.getParam("m_exploration/tolerance", tolerance);
 	double amount = 0;
 	nh.getParam("m_exploration/amount", amount);
+	double speed = 0;
+	nh.getParam("m_exploration/speed", speed);
   	double freq = 0;
   	nh.getParam("m_exploration/freq", freq);
 	std::string world_frame;
 	nh.getParam("m_exploration/world_frame", world_frame);
 
-	Exploration explore(&nh, ratio);
+	Exploration explore(&nh, ratio, speed, world_frame);
   	ros::Rate loop_rate(freq);
 
     nav_msgs::OccupancyGrid m;
@@ -49,11 +50,11 @@ int main(int argc, char **argv)
     		{
     			Point random = explore.randomPoint();
     			explore.addNode(random, tolerance, amount);
-				explore.Visualize(world_frame);
+				explore.Visualize();
 			}
 
         	explore.sendTrajectory();
-			explore.visualizeTrajectory(world_frame);
+			explore.visualizeTrajectory();
         }
         else
         {

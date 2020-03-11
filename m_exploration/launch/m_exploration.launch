@@ -1,11 +1,12 @@
 <launch>
-    <arg name = "ratio" default="0.25"/>   
-
+    <arg name = "ratio" default="0.25"/>       <!-- Distance of two nodes -->
     <arg name = "convergency" default="60" />  <!-- < 0,99 > Percentage of free cells around point-->
     <arg name = "tolerance" default ="5" />    <!-- <0, tolerance> is free space (max 99)-->
     <arg name = "amount" default="10" />       <!-- Depend on resolution of map and size of robot: resolution*amount should be straight span of robot; resolution is 0.05m-->
+
+    <arg name = "speed" default="0.5" />       <!-- Speed of robot in meters per seconds -->
     
-    <arg name = "freq" default="1"/>
+    <arg name = "freq" default="1"/>           <!-- Frequency of search path -->
     <arg name = "simul" default="true" />
     <arg name = "world_frame" default="simulation" />
 
@@ -14,6 +15,9 @@
         <param name="tolerance" value="$(arg tolerance)"/>
         <param name="convergency" value="$(arg convergency)"/>
         <param name="amount" value="$(arg amount)"/>
+
+        <param name="speed" value="$(arg speed)" />
+
         <param name="freq" value="$(arg freq)" />
         <param name="simul" value="$(arg simul)" />
         <param name="world_frame" value="$(arg world_frame)" />

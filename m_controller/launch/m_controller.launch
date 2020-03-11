@@ -17,6 +17,7 @@
         <param name="z" value="$(arg z)" />
 
         <remap from="s_velocity_cmd" to="/m_robot/velocity_cmd" />
+        <remap from="s_odometry" to="/m_robot/odometry" />
         <remap from="p_leftJoint_cmd" to="/m_robot/left_wheel_position_controller/command" />
         <remap from="p_rightJoint_cmd" to="/m_robot/right_wheel_position_controller/command" />        
     </node>
