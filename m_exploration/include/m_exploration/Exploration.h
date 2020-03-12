@@ -31,6 +31,8 @@ private:
 
 	double param;
 	double speed;
+	double smooth;
+
 	std::string worldFrame;
 
 	ros::Subscriber s_odom;
@@ -44,7 +46,7 @@ private:
 	int* addNumberVisualization(int* array, const int length, const int i) const; 
 public:
 	/*C'tors adn D'tors*/
-	Exploration(ros::NodeHandle *nh, double param, double speed, std::string world_frame);
+	Exploration(ros::NodeHandle *nh, double param, double speed, double smooth, std::string world_frame);
 	Exploration(double param, double speed, std::string world_frame);
 	~Exploration();
 
@@ -56,6 +58,7 @@ public:
 	bool endPath();
 	void addNode(const Point& point, const int tolerance = 0, const int amount = 0);
 	void sendTrajectory();
+	void smoothTrajectory(const int lenTraj);
 
 	/*Visualize on Rviz*/
 	void Visualize() const;

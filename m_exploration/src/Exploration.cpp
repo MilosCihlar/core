@@ -9,7 +9,7 @@
 #include "visualization_msgs/MarkerArray.h"
 
 
-Exploration::Exploration(ros::NodeHandle *nh, double param, double speed, std::string world_frame)
+Exploration::Exploration(ros::NodeHandle *nh, double param, double speed, double smooth, std::string world_frame)
 :tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr), odometryFlag(false), speed(speed), worldFrame(world_frame)
 {
 	s_odom = nh->subscribe("s_odometry", 1, &Exploration::callbackNewStartPoint, this);
@@ -18,6 +18,16 @@ Exploration::Exploration(ros::NodeHandle *nh, double param, double speed, std::s
 	p_marker = nh->advertise<visualization_msgs::Marker>("visualization_marker", 10);
 	p_marker_array = nh->advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
 	nodes = new Point[1];
+
+	if(smooth > 1)
+	{
+		smooth = 1;
+	}
+	else if(smooth < 0)
+	{
+		smooth = 0;
+	} else
+		this->smooth = smooth;
 }
 
 Exploration::Exploration(double param, double speed, std::string world_frame)
@@ -374,19 +384,20 @@ void Exploration::sendTrajectory()
 	int l = tree.getNumberOfNode();
 	finalBranch = new int[l];
 	tree.getTrajectory(finalBranch);
+	smoothTrajectory(l);
 	nav_msgs::Path path;
 
 	for (int i = 0; i < l-1; i++)
 	{
-		double vx = nodes[finalBranch[i+1]].getX() - nodes[finalBranch[i]].getX();
-		double vy = nodes[finalBranch[i+1]].getY() - nodes[finalBranch[i]].getY();
-		double D = maps.distance(nodes[finalBranch[i]], nodes[finalBranch[i+1]]);
+		double vx = trajectory[i+1].getX() - trajectory[i].getX();
+		double vy = trajectory[i+1].getY() - trajectory[i].getY();
+		double D = maps.distance(trajectory[i], trajectory[i+1]);
 		double time = D/speed;
 		double param = 1/(time/0.02);
 
 		for (double t = 0; t < 1; t = t + param)
 		{
-			Point p(nodes[finalBranch[i]].getX() + vx*t,  nodes[finalBranch[i]].getY() + vy * t, 0);
+			Point p(trajectory[i].getX() + vx*t,  trajectory[i].getY() + vy * t, 0);
 			geometry_msgs::PoseStamped pose;
 			pose.pose.position.x = p.getX();
 			pose.pose.position.y = p.getY();
@@ -413,9 +424,10 @@ void Exploration::visualizeTrajectory() const
 
 	line_strip.type = visualization_msgs::Marker::LINE_STRIP;
 	
-    line_strip.scale.x = 0.025;
-    // Line list is red
-    line_strip.color.a = 1.0;
+    line_strip.scale.x = 0.06;
+
+	line_strip.color.r = 1.0;
+	line_strip.color.a = 1.0;
 
 	int len = tree.getNumberOfNode();
 
@@ -477,6 +489,38 @@ Point Exploration::getStart() const
 Map Exploration::getMap()
 {
 	return maps;
+}
+
+void Exploration::smoothTrajectory(const int lenTraj)
+{
+	trajectory = new Point[lenTraj];
+	Point last;
+	Point now;
+	Point future;
+
+	Point node;
+	trajectory[0] = nodes[finalBranch[0]];
+	for (int i = 1; i < (lenTraj - 1); ++i)
+	{
+		last = nodes[finalBranch[i-1]];
+		now = nodes[finalBranch[i]];
+		future = nodes[finalBranch[i+1]];
+
+		double deltaX1 = abs(((now.getX() - last.getX())));
+		double deltaY1 = abs(((now.getY() - last.getY())));
+
+		double deltaX2 = (future.getX() - last.getX());
+		double deltaY2 = (future.getY() - last.getY());
+
+		double D = maps.distance(last,future);
+
+		node.setX(last.getX() + deltaX1*(2*smooth*(1/(1+exp(-(1/(-D+2*param + 0.0001))*(deltaX2))))-smooth));
+		node.setY(last.getY() + deltaY1*(2*smooth*(1/(1+exp(-(1/(-D+2*param + 0.0001))*(deltaY2))))-smooth));
+
+
+		trajectory[i] = node;
+	}
+		trajectory[lenTraj-1] = future;
 }
 
 

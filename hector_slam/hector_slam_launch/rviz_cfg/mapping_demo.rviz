@@ -7,8 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /Marker1
+        - /Marker1/Namespaces1
         - /Odometry1/Shape1
-        - /Marker2
       Splitter Ratio: 0.5
     Tree Height: 728
   - Class: rviz/Selection
@@ -138,7 +138,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker
       Name: Marker
       Namespaces:
-        {}
+        StartEndPoint: true
       Queue Size: 100
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -174,14 +174,6 @@ Visualization Manager:
         Value: Arrow
       Topic: /m_robot/odometry
       Unreliable: false
-      Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /visualization_marker_array
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:

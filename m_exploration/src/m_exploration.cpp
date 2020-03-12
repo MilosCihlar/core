@@ -20,6 +20,8 @@ int main(int argc, char **argv)
   	// Settings
 	double ratio = 0;
 	nh.getParam("m_exploration/ratio", ratio);
+	double smooth = 0;
+	nh.getParam("m_exploration/smooth", smooth);
 	double convergency = 0;
 	nh.getParam("m_exploration/convergency", convergency);
 	double tolerance = 0;
@@ -33,7 +35,7 @@ int main(int argc, char **argv)
 	std::string world_frame;
 	nh.getParam("m_exploration/world_frame", world_frame);
 
-	Exploration explore(&nh, ratio, speed, world_frame);
+	Exploration explore(&nh, ratio, speed, smooth, world_frame);
   	ros::Rate loop_rate(freq);
 
     nav_msgs::OccupancyGrid m;
