@@ -1,8 +1,3 @@
-<!--
-  Used for visualising rplidar in action.  
-  
-  It requires rplidar.launch.
- -->
 <launch>
   <include file="$(find rplidar_ros)/launch/rplidar.launch" />
 

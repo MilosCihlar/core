@@ -3,8 +3,8 @@
 
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Float64.h"
-#include "sensor_msgs/JointState.h"
 #include "nav_msgs/Odometry.h"
+#include "nav_msgs/Path.h"
 
 #include "m_controller/MController.h"
 
@@ -13,18 +13,25 @@
 #include "m_controller/Robot.h"
 #include "m_controller/Wheel.h"
 
-MController::MController(ros::NodeHandle *nh): request(), actual(), odom(),manual(false), autonomous(false)
+
+MController::MController(ros::NodeHandle *nh): request(), actual(), odom(), manual(false), autonomous(false)
 {
     s_velocity = nh->subscribe("s_velocity_cmd", 1, &MController::subscribeVelocity, this);
-	s_odom = nh->subscribe("s_odometry", 1, &MController::subscribeOdometry, this);
+	s_path = nh->subscribe("s_path", 1, &MController::subscribePath, this);
+    s_odom = nh->subscribe("s_odometry", 1, &MController::subscribeOdometry, this);
+
     p_leftJoint = nh->advertise<std_msgs::Float64>("p_leftJoint_cmd", 1);
     p_rightJoint = nh->advertise<std_msgs::Float64>("p_rightJoint_cmd", 1);
+	p_leftVelocity = nh->advertise<std_msgs::Float64>("p_leftWheel/cmd", 1);
+	p_rightVelocity = nh->advertise<std_msgs::Float64>("p_rightWheel/cmd", 1);
 }
 
 MController::MController(ros::NodeHandle *nh, const Robot& actual): request(actual), actual(actual), odom(), manual(false), autonomous(false)
 {
     s_velocity = nh->subscribe("s_velocity_cmd", 1,&MController::subscribeVelocity, this);
-	s_odom = nh->subscribe("s_odometry", 1, &MController::subscribeOdometry, this);
+	s_path = nh->subscribe("s_path", 1, &MController::subscribePath, this);
+    s_odom = nh->subscribe("s_odometry", 1, &MController::subscribeOdometry, this);
+	
     p_leftJoint = nh->advertise<std_msgs::Float64>("p_leftJoint_cmd", 1);
     p_rightJoint = nh->advertise<std_msgs::Float64>("p_rightJoint_cmd", 1);
 }
@@ -68,17 +75,23 @@ void MController::setpointFilter()
 
 void MController::sendCommand()
 {
-      double sec = ros::Time::now().toSec();
+	double sec = ros::Time::now().toSec();
 
-      std_msgs::Float64 left; 
-      left.data = actual.getLeftWheel().newMove(sec - lastTime);
+	std_msgs::Float64 left;
+	left.data = actual.getLeftWheel().newMove(sec - lastTime);
+	std_msgs::Float64 leftWheel;
+	leftWheel.data = actual.getLeftWheel().getVelocity();
+	p_leftJoint.publish(leftWheel);
 
-      std_msgs::Float64 right; 
-      right.data = actual.getRightWheel().newMove(sec - lastTime);
+	std_msgs::Float64 right;
+	right.data = actual.getRightWheel().newMove(sec - lastTime);
+	std_msgs::Float64 rightWheel;
+	rightWheel.data = actual.getRightWheel().getVelocity();
+	p_rightJoint.publish(rightWheel);
 
-      p_leftJoint.publish(left);
-      p_rightJoint.publish(right);
-      lastTime = sec;
+	p_leftJoint.publish(left);
+	p_rightJoint.publish(right);
+	lastTime = sec;
 }
 
 bool MController::getManual() const
@@ -107,6 +120,18 @@ void MController::manualControl()
 	sendCommand();
 }
 
+void MController::subscribePath(const nav_msgs::Path &path)
+{
+	if(manual)
+		autonomous = false;
+	else
+	{
+		autonomous = true;
+		manual = false;
+	}
+
+
+}
 void MController::autonomousControl()
 {
 

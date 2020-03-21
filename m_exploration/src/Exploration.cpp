@@ -72,7 +72,7 @@ bool Exploration::endPath()
 {
 	int nearst = findNearstNode(end);
 	double d = maps.distance(nodes[nearst], end); 
-	if (d >= 2*param)
+	if (d >= param)
 	{
 		return false;
 	}
@@ -163,7 +163,6 @@ int* Exploration::addNumberVisualization(int* array, const int length, const int
 
 void Exploration::Visualize() const
 {
-
 	visualization_msgs::Marker n, points;
 	points.header.frame_id = n.header.frame_id = worldFrame;
 	points.header.stamp = n.header.stamp = ros::Time::now();
@@ -378,37 +377,10 @@ void Exploration::setParam(const double p)
 
 void Exploration::sendTrajectory()
 {
-	static int id = 0;
-	id += 1;
-
 	int l = tree.getNumberOfNode();
 	finalBranch = new int[l];
 	tree.getTrajectory(finalBranch);
 	smoothTrajectory(l);
-	nav_msgs::Path path;
-
-	for (int i = 0; i < l-1; i++)
-	{
-		double vx = trajectory[i+1].getX() - trajectory[i].getX();
-		double vy = trajectory[i+1].getY() - trajectory[i].getY();
-		double D = maps.distance(trajectory[i], trajectory[i+1]);
-		double time = D/speed;
-		double param = 1/(time/0.02);
-
-		for (double t = 0; t < 1; t = t + param)
-		{
-			Point p(trajectory[i].getX() + vx*t,  trajectory[i].getY() + vy * t, 0);
-			geometry_msgs::PoseStamped pose;
-			pose.pose.position.x = p.getX();
-			pose.pose.position.y = p.getY();
-			pose.pose.position.z = 0;
-			path.poses.push_back(pose);
-		}
-	}
-	path.header.seq = id;
-	path.header.frame_id = worldFrame;
-
-	p_trajectory.publish(path);
 }
 
 void Exploration::visualizeTrajectory() const
@@ -493,34 +465,89 @@ Map Exploration::getMap()
 
 void Exploration::smoothTrajectory(const int lenTraj)
 {
+	static int id = 0;
+
 	trajectory = new Point[lenTraj];
-	Point last;
-	Point now;
-	Point future;
+	Point p;
+	double px, py;
+	Point d;
+	double dx, dy;
+	Point t;
+	double tx, ty;
+	Point c;
+	double cx, cy;
 
-	Point node;
-	trajectory[0] = nodes[finalBranch[0]];
-	for (int i = 1; i < (lenTraj - 1); ++i)
+	Point newPoint;
+	nav_msgs::Path path;
+
+	int res = 0;
+	for (int i = 0; i < (lenTraj-3); i = i + 3)
 	{
-		last = nodes[finalBranch[i-1]];
-		now = nodes[finalBranch[i]];
-		future = nodes[finalBranch[i+1]];
+		p = nodes[finalBranch[i]];
+		px = p.getX(); py = p.getY();
+		d = nodes[finalBranch[i+1]];
+		dx = d.getX(); dy = d.getY();
+		t = nodes[finalBranch[i+2]];
+		tx = t.getX(); ty = t.getY();
+		c = nodes[finalBranch[i+3]];
+		cx = c.getX(); cy = c.getY();
 
-		double deltaX1 = abs(((now.getX() - last.getX())));
-		double deltaY1 = abs(((now.getY() - last.getY())));
+		res = i;
 
-		double deltaX2 = (future.getX() - last.getX());
-		double deltaY2 = (future.getY() - last.getY());
+		double d1 = maps.distance(p, d);
+		double d2 = maps.distance(d, t);
+		double d3 = maps.distance(t, c);
+		double D = d1 + d2 + d3;
+		double Dn = 0.8*D;
 
-		double D = maps.distance(last,future);
+		double time = Dn/speed;
+		double param = 0.02/time;
 
-		node.setX(last.getX() + deltaX1*(2*smooth*(1/(1+exp(-(1/(-D+2*param + 0.0001))*(deltaX2))))-smooth));
-		node.setY(last.getY() + deltaY1*(2*smooth*(1/(1+exp(-(1/(-D+2*param + 0.0001))*(deltaY2))))-smooth));
+		for (double t = 0; t < 1; t = t + param)
+		{
+			id += 1;
+			double x = (-px + 3*dx -3*tx + cx)*t*t*t + (3*px -6*dx + 3*tx)*t*t + (-3*px + 3*dx)*t + px;
+			double y = (-py + 3*dy -3*ty + cy)*t*t*t + (3*py -6*dy + 3*ty)*t*t + (-3*py + 3*dy)*t + py;
 
+			geometry_msgs::PoseStamped pose;
+			pose.pose.position.x = x;
+			pose.pose.position.y = y;
+			pose.pose.position.z = 0;
+			path.poses.push_back(pose);
+			path.header.seq = id;
+		}
 
-		trajectory[i] = node;
 	}
-		trajectory[lenTraj-1] = future;
+
+
+	double Dn = 1.2*maps.distance(nodes[finalBranch[res+3]], nodes[finalBranch[lenTraj-1]]);
+	double time = Dn/speed;
+	double param = 0.02/time;
+
+	double vx = nodes[finalBranch[lenTraj-1]].getX() - nodes[finalBranch[res+3]].getX();
+	double vy = nodes[finalBranch[lenTraj-1]].getY() - nodes[finalBranch[res+3]].getY();
+
+	for (double t = 0; t < 1; t = t + param)
+	{
+		id += 1;
+		geometry_msgs::PoseStamped pose;
+		pose.pose.position.x = nodes[finalBranch[res+3]].getX() + vx*t;
+		pose.pose.position.y = nodes[finalBranch[res+3]].getY() + vy*t;
+		pose.pose.position.z = 0;
+		path.poses.push_back(pose);
+		path.header.seq = id;
+	}
+	id += 1;
+	geometry_msgs::PoseStamped pose;
+	pose.pose.position.x = nodes[finalBranch[lenTraj-1]].getX();
+	pose.pose.position.y = nodes[finalBranch[lenTraj-1]].getY();
+	pose.pose.position.z = 0;
+	path.poses.push_back(pose);
+	path.header.seq = id;
+	path.header.frame_id = worldFrame;
+
+	p_trajectory.publish(path);
+
 }
 
 

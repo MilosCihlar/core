@@ -1,6 +1,6 @@
 <launch>
     <arg name = "ratio" default="0.25"/>       <!-- Distance of two nodes -->
-    <arg name = "smooth" default="0.9" />
+    <arg name = "smooth" default="0.5" />
     <arg name = "convergency" default="90" />  <!-- < 0,99 > Percentage of free cells around point-->
     <arg name = "tolerance" default ="5" />    <!-- <0, tolerance> is free space (max 99)-->
     <arg name = "amount" default="10" />       <!-- Depend on resolution of map and size of robot: resolution*amount should be straight span of robot; resolution is 0.05m-->
@@ -9,7 +9,7 @@
     
     <arg name = "freq" default="1"/>           <!-- Frequency of search path -->
     <arg name = "simul" default="true" />
-    <arg name = "world_frame" default="simulation" />
+    <arg name = "world_frame" default="world_frame" />
 
     <node name="m_exploration" pkg="m_exploration" type="m_exploration" respawn="false" output="screen" >
         <param name="ratio" value="$(arg ratio)"/>

@@ -89,6 +89,9 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(rate);
 
     double pos[3];
+    pos[0] = x;
+    pos[1] = y;
+    pos[2] = z;
     double vel[3];
 
     nav_msgs::Odometry msg_odometry;
@@ -96,6 +99,10 @@ int main(int argc, char **argv)
 
     msg_odometry.header.frame_id = world_frame;
     Quaternion quaternion;
+
+    tf::TransformBroadcaster broadcaster;
+    tf::Transform transform;
+    
 
     while (n.ok())
     {
@@ -122,17 +129,16 @@ int main(int argc, char **argv)
 
             msg_odometry.header.seq = odom.getNumber();
 
-           // if(simul)
-           // {
-           //     tf::TransformBroadcaster broadcaster;
-           //     tf::Transform transform;
-           //     transform.setOrigin( tf::Vector3(pos[X], pos[Y], 0.0) );
-           //     transform.setRotation( tf::Quaternion(0, 0, pos[Theta], 1) );
-           //     broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), world_frame, robot_name));
-           // }
-
             pub_odom.publish(msg_odometry);
         }
+
+        if(!simul)
+        {
+            transform.setOrigin(tf::Vector3(pos[X], pos[Y], 0.0));
+            transform.setRotation( tf::Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w));
+            broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), world_frame, robot_name));
+        }
+
         ros::spinOnce();
         loop_rate.sleep();
     }
