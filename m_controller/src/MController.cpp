@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <math.h>
 #include "ros/ros.h"
 
 #include "geometry_msgs/Twist.h"
@@ -79,15 +81,17 @@ void MController::sendCommand()
 
 	std_msgs::Float64 left;
 	left.data = actual.getLeftWheel().newMove(sec - lastTime);
+
 	std_msgs::Float64 leftWheel;
 	leftWheel.data = actual.getLeftWheel().getVelocity();
-	p_leftJoint.publish(leftWheel);
+//	p_leftVelocity.publish(leftWheel);
 
 	std_msgs::Float64 right;
 	right.data = actual.getRightWheel().newMove(sec - lastTime);
+
 	std_msgs::Float64 rightWheel;
 	rightWheel.data = actual.getRightWheel().getVelocity();
-	p_rightJoint.publish(rightWheel);
+//	p_rightVelocity.publish(rightWheel);
 
 	p_leftJoint.publish(left);
 	p_rightJoint.publish(right);
@@ -130,14 +134,99 @@ void MController::subscribePath(const nav_msgs::Path &path)
 		manual = false;
 	}
 
-
+	for(std::vector<geometry_msgs::PoseStamped>::const_iterator it = path.poses.begin(); it != path.poses.end(); ++it)
+	{
+		Point p(it->pose.position.x,it->pose.position.y, it->pose.position.z);
+		trajectory.push_back(p);
+	}
 }
 void MController::autonomousControl()
 {
+	int nearst = findNearsTrajectoryPoint();
+	std::cout << "nearst: " << nearst << std::endl;
+	int L = findCircleIntersectionWithTrajectory(nearst);
+	std::cout << "L " << L << std::endl;
 
+	// uhel a vzdalenost je v poradku
+	if (L != -1)
+	{
+		double speed = sqrt(pow(trajectory[nearst].getX() - trajectory[nearst+1].getX(),2) + pow(trajectory[nearst].getY() - trajectory[nearst+1].getY(),2))/0.02;
+		std::cout << "speed " << speed << std::endl;
+
+		double fi_odom = odom.getPosition().getAngle().getZ();
+		std::cout << "fi_odom " << fi_odom << std::endl;
+
+		double fi_wanted = atan2(trajectory[L].getY() - odom.getPosition().getPoint().getY(), trajectory[L].getX() - odom.getPosition().getPoint().getX());
+		std::cout << "fi_wanted " << fi_wanted << std::endl;
+
+		std::cout << "pathCircle " << pathTrackingCircle << std::endl;
+		std::cout << "angleZ " << (fi_wanted-fi_odom)/(pathTrackingCircle/speed) << std::endl;
+
+		Point lin(speed,0,0);
+		Point ang(0,0, (fi_wanted-fi_odom)/(pathTrackingCircle/speed));
+		Position vel(lin, ang);
+		request.setVelocity(vel);
+	}
+	else{
+
+	}
+
+	setpointFilter();
+	sendCommand();
 }
 
 void MController::setLastTime()
 {
  	lastTime = ros::Time::now().toSec();
+}
+
+int MController::findNearsTrajectoryPoint()
+{
+	int nearst;
+	double distance = 9999999999;
+
+	for(int i = 0; i < trajectory.size(); i++)
+	{
+		double d = sqrt(pow(trajectory[i].getX() - odom.getPosition().getPoint().getX(),2) + pow(trajectory[i].getY() - odom.getPosition().getPoint().getY(),2));
+		if (d < distance)
+		{
+			distance = d;
+			nearst = i;
+		}
+	}
+
+	return nearst;
+}
+
+void MController::setPathTrackingCircle(const double pathTrackingCircle)
+{
+	this->pathTrackingCircle = pathTrackingCircle;
+}
+
+int MController::findCircleIntersectionWithTrajectory(const int start)
+{
+	int nearst = 0;
+	double distance = 999999999;
+
+	double xs =  odom.getPosition().getPoint().getX();
+	double ys =  odom.getPosition().getPoint().getY();
+	double x = 0;
+	double y = 0;
+
+	for (double j = 0; j < 6.283; j = j + 0.01)
+	{
+		x = xs + pathTrackingCircle*cos(j);
+		y = ys + pathTrackingCircle*sin(j);
+
+		for (int i = start; i < trajectory.size() - 1; ++i)
+		{
+			double d = sqrt(pow(trajectory[i].getX() - trajectory[i+1].getX(),2) + pow(trajectory[i].getY() - trajectory[i+1].getY(),2));
+
+			if ( (abs(trajectory[i].getX() - x) <= d/2) && ((abs(trajectory[i].getY() - y) <= d/2)))
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
 }

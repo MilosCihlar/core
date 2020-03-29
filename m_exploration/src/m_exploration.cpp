@@ -40,23 +40,42 @@ int main(int argc, char **argv)
 
     nav_msgs::OccupancyGrid m;
     geometry_msgs::Twist velocity;
-	
+
+	double f = true;
+
   	while (ros::ok())
   	{
 		if ((explore.getOdometryFlag()) && (explore.getMapFlag()))
-        {        
-    		explore.newEndPoint(amount, convergency, tolerance);
-            Point end = explore.getEnd();
+		{
+			if(f or sqrt(pow(explore.getStart().getX() - explore.getEnd().getX(),2) + pow(explore.getStart().getY() - explore.getEnd().getY(),2)) <= 2*ratio)
+			{
+				explore.newEndPoint(amount, convergency, tolerance);
+				f = false;
+			}
 
-    		while (!explore.endPath())
+
+			double before = ros::Time::now().toSec();
+			double after;
+
+    		while (true)
     		{
+    			after = ros::Time::now().toSec();
+    			if (after - before >= 1/freq)
+    				break;
     			Point random = explore.randomPoint();
     			explore.addNode(random, tolerance, amount);
-				explore.Visualize();
+				explore.VisualizeTree();
+				explore.VisualizeStartEndPoint();
 			}
-    		
-        	explore.sendTrajectory();
-			explore.visualizeTrajectory();
+
+			explore.VisualizeStartEndPoint();
+
+			if(explore.endPath())
+			{
+				explore.sendTrajectory();
+				explore.visualizeTrajectory();
+			}
+
         }
         else
         {

@@ -49,7 +49,7 @@ public:
 	double distance(const Point& start, const Point& end) const;
 	void Calibry(const double x, const double y);	
 	Point randomPoint() const;
-	Point getEndPoint(const Point& start, const int amount, const double convergecy, const int tolerance) const;
+	Point getEndPoint(const Point& start, const Point& first, const int amount, const double convergecy, const int tolerance) const;
 	void newSameMap(const int* array);
 	void newMap(const int* array, const int width, const int height, const double resolution, const double offsetx, const double offsety);
 	void callbackNewMap(const nav_msgs::OccupancyGrid& msg);

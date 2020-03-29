@@ -33,6 +33,11 @@ int main(int argc, char **argv)
   double z = 0;
   nh.getParam("m_control/z", z);
 
+  double pathTrackingCircle = 0;
+  nh.getParam("m_control/pathTrackingCircle", pathTrackingCircle);
+
+  std::cout << "pathTrackingparraaaam " << pathTrackingCircle << std::endl;
+
   Wheel wheel(radius);
   Point point(x,y,z);
   Point angle(0,0,0);
@@ -42,6 +47,7 @@ int main(int argc, char **argv)
   Robot robot(wheel, position, velocity, span);
 
   MController controller(&nh, robot);
+  controller.setPathTrackingCircle(pathTrackingCircle);
 
   ros::Rate loop_rate(rate);
   while (ros::ok())
@@ -64,9 +70,9 @@ int main(int argc, char **argv)
 		case(1):
 			controller.manualControl();
 			break;
-		case(2):
-			controller.autonomousControl();
-			break;
+		//case(2):
+		//	controller.autonomousControl();
+		//	break;
 		default:
 			controller.setLastTime();
 			break;

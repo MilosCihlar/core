@@ -177,10 +177,12 @@ Point Map::randomPoint() const
 	return point;
 }
 
-Point Map::getEndPoint(const Point& start, const int amount, const double convergency, const int tolerance) const
+Point Map::getEndPoint(const Point& start, const Point& first, const int amount, const double convergency, const int tolerance) const
 {
 	Point max = start;
 	double maxLength = 0;
+
+	bool flag = false;
 
 	for (int y = 0; y < Height; ++y)
 	{
@@ -217,6 +219,7 @@ Point Map::getEndPoint(const Point& start, const int amount, const double conver
 					{
 						maxLength = d;
 						max = p;
+						flag = true;
 					}
 				}
 				
@@ -224,7 +227,10 @@ Point Map::getEndPoint(const Point& start, const int amount, const double conver
 		}
 	}
 
-	return max;
+	if(flag)
+		return max;
+	else
+		return first;
 }
 
 void Map::newSameMap(const int* array)

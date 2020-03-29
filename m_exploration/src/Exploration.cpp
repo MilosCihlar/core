@@ -51,9 +51,12 @@ void Exploration::callbackNewStartPoint(const nav_msgs::Odometry& msg)
 	p.setY(msg.pose.pose.position.y);
 	p.setZ(0);
 	start = p;
+	//std::cout << "odometrie" << std::endl;
 
 	if (!odometryFlag)
 	{
+		first.setX(msg.pose.pose.position.x);
+		first.setY(msg.pose.pose.position.y);
 		nodes[0] = p;
 		maps.Calibry(p.getX(), p.getY());
 	}
@@ -72,7 +75,7 @@ bool Exploration::endPath()
 {
 	int nearst = findNearstNode(end);
 	double d = maps.distance(nodes[nearst], end); 
-	if (d >= param)
+	if (d > param)
 	{
 		return false;
 	}
@@ -83,7 +86,7 @@ bool Exploration::endPath()
 	}
 }
 
-int Exploration::findNearstNode(const Point& point)
+int Exploration::findNearstNode(const Point& point) const
 {
 	Point p(100000, 100000, 0);
 	double distance = 10000000;
@@ -160,8 +163,7 @@ int* Exploration::addNumberVisualization(int* array, const int length, const int
 	
 	return array;
 }
-
-void Exploration::Visualize() const
+void Exploration::VisualizeStartEndPoint() const
 {
 	visualization_msgs::Marker n, points;
 	points.header.frame_id = n.header.frame_id = worldFrame;
@@ -176,23 +178,43 @@ void Exploration::Visualize() const
 	points.type = visualization_msgs::Marker::POINTS;
 
 	n.scale.x = 0.04;
-    n.scale.y = 0.04;
+	n.scale.y = 0.04;
 	points.scale.x = 0.1;
 	points.scale.y = 0.1;
 
 	n.color.r = 1.0;
-    n.color.a = 1.0;
+	n.color.a = 1.0;
 	points.color.g = 1.0f;
 	points.color.a = 1.0;
 
 	for (int i = 0; i < tree.getNumberPoint(); i++)
 	{
-	  	geometry_msgs::Point n1;
-      	n1.x = nodes[i].getX();
-      	n1.y = nodes[i].getY();
-      	n1.z = 0;
-	  	n.points.push_back(n1);
+		geometry_msgs::Point n1;
+		n1.x = nodes[i].getX();
+		n1.y = nodes[i].getY();
+		n1.z = 0;
+		n.points.push_back(n1);
 	}
+
+	geometry_msgs::Point p;
+	p.x = start.getX();
+	p.y = start.getY();
+	p.z = 0;
+	points.points.push_back(p);
+
+	p.x = end.getX();
+	p.y = end.getY();
+	p.z = 0;
+	points.points.push_back(p);
+
+	p_marker.publish(points);
+	p_marker.publish(n);
+
+
+}
+
+void Exploration::VisualizeTree() const
+{
 
 	Tree copyTree = tree;
 	int* nextStart = new int[2];
@@ -352,19 +374,6 @@ void Exploration::Visualize() const
 
 	delete[] nextStart;
 
-	geometry_msgs::Point p;
-	p.x = start.getX();
-	p.y = start.getY();
-	p.z = 0;
-	points.points.push_back(p);
-
-	p.x = end.getX();
-	p.y = end.getY();
-	p.z = 0;
-	points.points.push_back(p);
-
-	p_marker.publish(points);
-	p_marker.publish(n);
 	p_marker_array.publish(tre);
 }
 
@@ -377,9 +386,10 @@ void Exploration::setParam(const double p)
 
 void Exploration::sendTrajectory()
 {
-	int l = tree.getNumberOfNode();
+	int e = findNearstNode(end);
+	int l = tree.getNumberOfNode(e);
 	finalBranch = new int[l];
-	tree.getTrajectory(finalBranch);
+	tree.getTrajectory(finalBranch, e);
 	smoothTrajectory(l);
 }
 
@@ -401,7 +411,8 @@ void Exploration::visualizeTrajectory() const
 	line_strip.color.r = 1.0;
 	line_strip.color.a = 1.0;
 
-	int len = tree.getNumberOfNode();
+	int e = findNearstNode(end);
+	int len = tree.getNumberOfNode(e);
 
 	for (int i = 0; i < len; i++)
 	{
@@ -413,7 +424,6 @@ void Exploration::visualizeTrajectory() const
 	}
 
     p_marker.publish(line_strip);
-
 }
 
 void Exploration::setEndPoint(const Point& point)
@@ -429,7 +439,7 @@ void Exploration::setStartPoint(const Point& point)
 
 void Exploration::newEndPoint(const int amount,const double convergecy, const int tolerance)
 {
-	end = maps.getEndPoint(start, amount, convergecy, tolerance);
+	end = maps.getEndPoint(start, first, amount, convergecy, tolerance);
 }
 
 Point Exploration::randomPoint() const

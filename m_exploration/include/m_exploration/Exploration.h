@@ -23,6 +23,8 @@ private:
 	Map maps;
 	Tree tree;
 
+	Point first;
+
 	Point start;
 	Point end;
 	Point* nodes;
@@ -42,7 +44,7 @@ private:
 	ros::Publisher p_marker;
 	ros::Publisher p_marker_array;
 private:
-	int findNearstNode(const Point& point);
+	int findNearstNode(const Point& point) const;
 	int* addNumberVisualization(int* array, const int length, const int i) const; 
 public:
 	/*C'tors adn D'tors*/
@@ -61,7 +63,8 @@ public:
 	void smoothTrajectory(const int lenTraj);
 
 	/*Visualize on Rviz*/
-	void Visualize() const;
+	void VisualizeTree() const;
+	void VisualizeStartEndPoint() const;
 	void visualizeTrajectory() const;
 
 	/*Setter and Getter*/

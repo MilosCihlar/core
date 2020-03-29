@@ -84,7 +84,7 @@ void Tree::addPoint(const int node, const int neighbor)
 	bond[numberPoint][1] = neighbor;
 }
 
-Tree Tree::removeSingleBranch() const   // zmena
+Tree Tree::removeSingleBranch(int end) const   // zmena
 {
 	//remove all single brach, replace nodes in branches -1
 	Tree copy = *this;
@@ -92,15 +92,15 @@ Tree Tree::removeSingleBranch() const   // zmena
 	while (step)
 	{
 		step = false;
-		for (int y = 0; y < numberPoint; ++y)
+		for (int y = 0; y <= numberPoint; ++y)
 		{
-			if (y != seed)
+			if (y != seed && y != end)
 			{
 				if (copy.bond[y][0] == 1)
 				{
 					step = true;
 					copy.bond[y][0] = -1;
-					for (int yy = 0; yy < numberPoint; yy++)
+					for (int yy = 0; yy <= numberPoint; yy++)
 					{
 						int max = copy.bond[yy][0];
 						for (int xx = 1; xx <= max; xx++)
@@ -124,20 +124,20 @@ Tree Tree::removeSingleBranch() const   // zmena
 	return copy;
 }
 
-void Tree::getTrajectory(int* traj) const
+void Tree::getTrajectory(int* traj, int end) const
 {
-	int l = getNumberOfNode();
+	int l = getNumberOfNode(end);
 	for (int i = 0; i < l; i++)
 	{
 		traj[i] = -1;
 	}
 
-	Tree tree = removeSingleBranch();
+	Tree tree = removeSingleBranch(end);
 
 	int node = seed;
 	int nextNode = 0;
 	int index = 0;
-	while (node != numberPoint)
+	while (node != end)
 	{
 		traj[index] = node;
 		int max = tree.bond[node][0];
@@ -307,22 +307,22 @@ int Tree::getNumberPoint() const
 	return numberPoint;
 }
 
-int Tree::getNumberOfNode() const
+int Tree::getNumberOfNode(int end) const
 {
 	Tree copy = *this;
 	bool step = true;
 	while (step)
 	{
 		step = false;
-		for (int y = 0; y < numberPoint; ++y)
+		for (int y = 0; y <= numberPoint; ++y)
 		{
-			if (y != seed)
+			if (y != seed && y != end)
 			{
 				if (copy.bond[y][0] == 1)
 				{
 					step = true;
 					copy.bond[y][0] = -1;
-					for (int yy = 0; yy < numberPoint; yy++)
+					for (int yy = 0; yy <= numberPoint; yy++)
 					{
 						int max = copy.bond[yy][0];
 						for (int xx = 1; xx <= max; xx++)

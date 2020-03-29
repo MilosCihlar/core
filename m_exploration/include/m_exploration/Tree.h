@@ -22,16 +22,16 @@ public:
 	/*Methods*/
 	void addPoint(const int node, const int neighbor);
 	
-	Tree removeSingleBranch() const;
+	Tree removeSingleBranch(int end) const;
 	bool haveNodeNeighbor(const int node) const;
 	bool freeNeighbor() const;
 
 	void print() const;
-	void getTrajectory(int* traj) const;
+	void getTrajectory(int* traj, int end) const;
 
 	/*Getter and Setter*/
 	int getNumberPoint() const;
-	int getNumberOfNode() const;
+	int getNumberOfNode(int end) const;
 
 	int getFirstNeighbor(const int node) const;
 	int getNeighbor(const int node, const int pos) const;

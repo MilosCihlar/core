@@ -2,6 +2,7 @@
     <arg name = "radius" />
     <arg name = "freq" />
     <arg name = "span" />
+    <arg name = "pathTrackingCircle" />
 
     <arg name="x" />
     <arg name="y" />
@@ -11,6 +12,7 @@
         <param name="radius" value="$(arg radius)"/>
         <param name="freq" value="$(arg freq)" />
         <param name="span" value="$(arg span)" />
+        <param name="pathTrackingCircle" value="$(arg pathTrackingCircle)" />
 
         <param name="x" value="$(arg x)" />
         <param name="y" value="$(arg y)" />
@@ -18,8 +20,12 @@
 
         <remap from="s_velocity_cmd" to="/m_robot/velocity_cmd" />
         <remap from="s_odometry" to="/m_robot/odometry" />
+
+        <remap from="s_path" to="/m_robot/trajectory" />
+
         <remap from="p_leftJoint_cmd" to="/m_robot/left_wheel_position_controller/command" />
         <remap from="p_rightJoint_cmd" to="/m_robot/right_wheel_position_controller/command" />
+
         <remap from="p_leftWheel/cmd" to="/m_robot/leftWheelVelocity" />
         <remap from="p_rightWheel/cmd" to="/m_robot/rightWheelVelocity" />
 
