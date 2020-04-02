@@ -7,10 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
-        - /Marker1
         - /Marker1/Namespaces1
         - /Odometry1/Shape1
-        - /LaserScan1
       Splitter Ratio: 0.5
     Tree Height: 728
   - Class: rviz/Selection
@@ -122,17 +120,17 @@ Visualization Manager:
         map:
           scanmatcher_frame:
             {}
-          world_frame:
-            m_robot:
-              chassis:
-                caster_wheel:
-                  {}
-                left_wheel:
-                  {}
-                right_wheel:
-                  {}
-                rplidar:
-                  {}
+        world_frame:
+          m_robot:
+            chassis:
+              caster_wheel:
+                {}
+              left_wheel:
+                {}
+              right_wheel:
+                {}
+              rplidar:
+                {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -207,6 +205,29 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 32; 74; 135
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /trajectory
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -235,15 +256,15 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 25.203901290893555
+      Distance: 22.179433822631836
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.7611574530601501
-        Y: -3.224167585372925
+        X: 2.330214023590088
+        Y: -3.180013418197632
         Z: 0
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806

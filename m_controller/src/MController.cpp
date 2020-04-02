@@ -19,7 +19,7 @@
 MController::MController(ros::NodeHandle *nh): request(), actual(), odom(), manual(false), autonomous(false)
 {
     s_velocity = nh->subscribe("s_velocity_cmd", 1, &MController::subscribeVelocity, this);
-	s_path = nh->subscribe("s_path", 1, &MController::subscribePath, this);
+	s_path = nh->subscribe("s_path", 1, &MController::subscribePath, this) ;
     s_odom = nh->subscribe("s_odometry", 1, &MController::subscribeOdometry, this);
 
     p_leftJoint = nh->advertise<std_msgs::Float64>("p_leftJoint_cmd", 1);
@@ -78,6 +78,7 @@ void MController::setpointFilter()
 void MController::sendCommand()
 {
 	double sec = ros::Time::now().toSec();
+	std::cout << "frekvence> " << 1/(sec - lastTime) << std::endl;
 
 	std_msgs::Float64 left;
 	left.data = actual.getLeftWheel().newMove(sec - lastTime);
@@ -126,6 +127,7 @@ void MController::manualControl()
 
 void MController::subscribePath(const nav_msgs::Path &path)
 {
+
 	if(manual)
 		autonomous = false;
 	else
@@ -134,42 +136,53 @@ void MController::subscribePath(const nav_msgs::Path &path)
 		manual = false;
 	}
 
+	trajectory.clear();
 	for(std::vector<geometry_msgs::PoseStamped>::const_iterator it = path.poses.begin(); it != path.poses.end(); ++it)
 	{
 		Point p(it->pose.position.x,it->pose.position.y, it->pose.position.z);
 		trajectory.push_back(p);
 	}
+
+}
+
+double MController::Modulo(const double p, const double m) const
+{
+	return std::fmod((std::fmod(p,m) + m) , m);
 }
 void MController::autonomousControl()
 {
 	int nearst = findNearsTrajectoryPoint();
-	std::cout << "nearst: " << nearst << std::endl;
 	int L = findCircleIntersectionWithTrajectory(nearst);
-	std::cout << "L " << L << std::endl;
+
+	double fi_wanted =atan2(trajectory[L].getY() - odom.getPosition().getPoint().getY(), trajectory[L].getX() - odom.getPosition().getPoint().getX());
+	double fi_odom = odom.getPosition().getAngle().getZ();
+	double speed = sqrt(pow(trajectory[nearst].getX() - trajectory[nearst+10].getX(),2) + pow(trajectory[nearst].getY() - trajectory[nearst+10].getY(),2))/0.	2;
+
+	double signed_fi =Modulo((fi_wanted - fi_odom + M_PI),2*M_PI) -M_PI;
+	double delta_fi = abs(signed_fi);
 
 	// uhel a vzdalenost je v poradku
-	if (L != -1)
+	if (L != -1 && (delta_fi < 0.5236) )
 	{
-		double speed = sqrt(pow(trajectory[nearst].getX() - trajectory[nearst+1].getX(),2) + pow(trajectory[nearst].getY() - trajectory[nearst+1].getY(),2))/0.02;
-		std::cout << "speed " << speed << std::endl;
-
-		double fi_odom = odom.getPosition().getAngle().getZ();
-		std::cout << "fi_odom " << fi_odom << std::endl;
-
-		double fi_wanted = atan2(trajectory[L].getY() - odom.getPosition().getPoint().getY(), trajectory[L].getX() - odom.getPosition().getPoint().getX());
-		std::cout << "fi_wanted " << fi_wanted << std::endl;
-
-		std::cout << "pathCircle " << pathTrackingCircle << std::endl;
-		std::cout << "angleZ " << (fi_wanted-fi_odom)/(pathTrackingCircle/speed) << std::endl;
-
 		Point lin(speed,0,0);
-		Point ang(0,0, (fi_wanted-fi_odom)/(pathTrackingCircle/speed));
+		Point ang(0,0, signed_fi/(pathTrackingCircle/speed));
 		Position vel(lin, ang);
 		request.setVelocity(vel);
 	}
-	else{
+	else if(L != -1 && (delta_fi >= 0.5236)){
+		Point lin(0,0,0);
+		double angular = (signed_fi)/(pathTrackingCircle/speed);
 
+		if (angular > speed)
+			angular = speed;
+
+		Point ang(0,0, angular);
+		Position vel(lin, ang);
+
+		request.setVelocity(vel);
 	}
+
+
 
 	setpointFilter();
 	sendCommand();
@@ -210,19 +223,44 @@ int MController::findCircleIntersectionWithTrajectory(const int start)
 
 	double xs =  odom.getPosition().getPoint().getX();
 	double ys =  odom.getPosition().getPoint().getY();
-	double x = 0;
-	double y = 0;
+	double x1,x2,x3,x4 = 0;
+	double y1,y2,y3,y4 = 0;
 
-	for (double j = 0; j < 6.283; j = j + 0.01)
+	double pipul = 6.283/4;
+	for (double j = 0; j < pipul; j = j + 0.05)
 	{
-		x = xs + pathTrackingCircle*cos(j);
-		y = ys + pathTrackingCircle*sin(j);
+		x1 = xs + pathTrackingCircle*cos(j);
+		y1 = ys + pathTrackingCircle*sin(j);
+
+		x2 = xs + pathTrackingCircle*cos(j + pipul);
+		y2 = ys + pathTrackingCircle*sin(j + pipul);
+
+		x3 = xs + pathTrackingCircle*cos(j + 2*pipul);
+		y3 = ys + pathTrackingCircle*sin(j + 2*pipul);
+
+		x4 = xs + pathTrackingCircle*cos(j + 3*pipul);
+		y4 = ys + pathTrackingCircle*sin(j + 3*pipul);
 
 		for (int i = start; i < trajectory.size() - 1; ++i)
 		{
 			double d = sqrt(pow(trajectory[i].getX() - trajectory[i+1].getX(),2) + pow(trajectory[i].getY() - trajectory[i+1].getY(),2));
 
-			if ( (abs(trajectory[i].getX() - x) <= d/2) && ((abs(trajectory[i].getY() - y) <= d/2)))
+			double tx = trajectory[i].getX();
+			double ty = trajectory[i].getY();
+
+			if ( (abs(tx - x1) <= 3*d) && ((abs(ty - y1) <= 3*d)))
+			{
+				return i;
+			}
+			if ( (abs(tx - x2) <= 3*d) && ((abs(ty - y2) <= 3*d)))
+			{
+				return i;
+			}
+			if ( (abs(tx - x3) <= 3*d) && ((abs(ty - y3) <= 3*d)))
+			{
+				return i;
+			}
+			if ( (abs(tx - x4) <= 3*d) && ((abs(ty - y4) <= 3*d)))
 			{
 				return i;
 			}

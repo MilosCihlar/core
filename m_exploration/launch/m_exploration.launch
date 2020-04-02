@@ -7,7 +7,7 @@
 
     <arg name = "speed" default="0.2" />       <!-- Speed of robot in meters per seconds -->
     
-    <arg name = "freq" default="10"/>           <!-- Frequency of search path -->
+    <arg name = "freq" default="5"/>           <!-- Frequency of search path -->
     <arg name = "simul" default="true" />
     <arg name = "world_frame" default="world_frame" />
 

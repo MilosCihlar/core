@@ -20,6 +20,8 @@
 class Exploration
 {
 private:
+	ros::NodeHandle *nh;
+	
 	Map maps;
 	Tree tree;
 

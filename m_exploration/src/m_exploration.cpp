@@ -47,21 +47,14 @@ int main(int argc, char **argv)
   	{
 		if ((explore.getOdometryFlag()) && (explore.getMapFlag()))
 		{
-			if(f or sqrt(pow(explore.getStart().getX() - explore.getEnd().getX(),2) + pow(explore.getStart().getY() - explore.getEnd().getY(),2)) <= 2*ratio)
+			if(f or sqrt(pow(explore.getStart().getX() - explore.getEnd().getX(),2) + pow(explore.getStart().getY() - explore.getEnd().getY(),2)) <= 4*ratio)
 			{
 				explore.newEndPoint(amount, convergency, tolerance);
 				f = false;
 			}
 
-
-			double before = ros::Time::now().toSec();
-			double after;
-
-    		while (true)
-    		{
-    			after = ros::Time::now().toSec();
-    			if (after - before >= 1/freq)
-    				break;
+			for (int i = 0; i < 1000; i++)
+			{
     			Point random = explore.randomPoint();
     			explore.addNode(random, tolerance, amount);
 				explore.VisualizeTree();

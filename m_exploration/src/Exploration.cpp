@@ -10,13 +10,13 @@
 
 
 Exploration::Exploration(ros::NodeHandle *nh, double param, double speed, double smooth, std::string world_frame)
-:tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr), odometryFlag(false), speed(speed), worldFrame(world_frame)
+:nh(nh), tree(), param(param), start(), end(), trajectory(nullptr), finalBranch(nullptr), odometryFlag(false), speed(speed), worldFrame(world_frame)
 {
 	s_odom = nh->subscribe("s_odometry", 1, &Exploration::callbackNewStartPoint, this);
 	s_map = nh->subscribe("s_map", 1, &Map::callbackNewMap, &maps);
-	p_trajectory = nh->advertise<nav_msgs::Path>("p_trajectory", 1);
-	p_marker = nh->advertise<visualization_msgs::Marker>("visualization_marker", 10);
-	p_marker_array = nh->advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
+	p_trajectory = nh->advertise<nav_msgs::Path>("p_trajectory", 1, false);
+	p_marker = nh->advertise<visualization_msgs::Marker>("visualization_marker", 1);
+	p_marker_array = nh->advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1);
 	nodes = new Point[1];
 
 	if(smooth > 1)
@@ -476,6 +476,7 @@ Map Exploration::getMap()
 void Exploration::smoothTrajectory(const int lenTraj)
 {
 	static int id = 0;
+	//p_trajectory.shutdown();
 
 	trajectory = new Point[lenTraj];
 	Point p;
@@ -490,6 +491,7 @@ void Exploration::smoothTrajectory(const int lenTraj)
 	Point newPoint;
 	nav_msgs::Path path;
 
+	path.poses.clear();
 	int res = 0;
 	for (int i = 0; i < (lenTraj-3); i = i + 3)
 	{
@@ -508,7 +510,7 @@ void Exploration::smoothTrajectory(const int lenTraj)
 		double d2 = maps.distance(d, t);
 		double d3 = maps.distance(t, c);
 		double D = d1 + d2 + d3;
-		double Dn = 0.8*D;
+		double Dn = 1.2*D;
 
 		double time = Dn/speed;
 		double param = 0.02/time;
@@ -547,6 +549,7 @@ void Exploration::smoothTrajectory(const int lenTraj)
 		path.poses.push_back(pose);
 		path.header.seq = id;
 	}
+
 	id += 1;
 	geometry_msgs::PoseStamped pose;
 	pose.pose.position.x = nodes[finalBranch[lenTraj-1]].getX();
@@ -557,7 +560,6 @@ void Exploration::smoothTrajectory(const int lenTraj)
 	path.header.frame_id = worldFrame;
 
 	p_trajectory.publish(path);
-
 }
 
 

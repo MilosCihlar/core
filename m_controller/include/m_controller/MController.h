@@ -41,6 +41,7 @@ private:
 private:
 	int findNearsTrajectoryPoint();
 	int findCircleIntersectionWithTrajectory(const int start);
+	double Modulo(const double p, const double m) const;
 public:
     MController(ros::NodeHandle *nh);
     MController(ros::NodeHandle *nh, const Robot& actual);

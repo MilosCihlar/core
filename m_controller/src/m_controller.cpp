@@ -36,8 +36,6 @@ int main(int argc, char **argv)
   double pathTrackingCircle = 0;
   nh.getParam("m_control/pathTrackingCircle", pathTrackingCircle);
 
-  std::cout << "pathTrackingparraaaam " << pathTrackingCircle << std::endl;
-
   Wheel wheel(radius);
   Point point(x,y,z);
   Point angle(0,0,0);
@@ -50,6 +48,9 @@ int main(int argc, char **argv)
   controller.setPathTrackingCircle(pathTrackingCircle);
 
   ros::Rate loop_rate(rate);
+
+  controller.setLastTime();
+
   while (ros::ok())
   {
 	int type = 0;
@@ -63,20 +64,21 @@ int main(int argc, char **argv)
 	}
 
   	switch(type)
-	{
+  	{
 		case(0):
 			controller.setLastTime();
 			break;
 		case(1):
 			controller.manualControl();
 			break;
-		//case(2):
-		//	controller.autonomousControl();
-		//	break;
+		case(2):
+			controller.autonomousControl();
+			break;
 		default:
 			controller.setLastTime();
 			break;
 	}
+
 
     ros::spinOnce();
     loop_rate.sleep();
