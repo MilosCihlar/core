@@ -57,6 +57,7 @@ public:
 	/*Methods*/
 	void callbackNewStartPoint(const nav_msgs::Odometry& msg);
 	void newEndPoint(const int amount,const double convergecy, const int tolerance);
+	void newLocalEndPoint(const int amount,const double convergecy, const int tolerance, const double len);
 	Point randomPoint() const;
 	void newMap(const int* array, const int width, const int height, const double resolution, const double offsetx, const double offsety);
 	bool endPath();

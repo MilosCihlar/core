@@ -385,3 +385,59 @@ void Map::Calibry(const double x, const double y)
 	offsetX = offsetX + x;
 	offsetY = offsetY + y;
 }
+
+Point Map::getLocalEndPoint(const Point& start, const Point& first, const int amount, const double convergency, const int tolerance, const double len) const
+{
+	Point max = start;
+	double maxLength = 0;
+
+	bool flag = false;
+
+	for (int y = 0; y < Height; ++y)
+	{
+		for (int x = 0; x < Width; ++x)
+		{
+			Point p = getPoint(x, y);
+			if ((getValue(x,y) >= 0) && (getValue(x,y) <= tolerance))
+			{
+				double unknown = 0;
+				double known = 0;
+				double barrier = 0;
+
+				for (int yy = y - amount; yy <= y + amount; ++yy)
+				{
+					for (int xx = x - amount; xx <= x + amount; ++xx)
+					{
+						if (!(yy < 0 || xx < 0 || yy > Height || xx > Width))
+						{
+							int value = getValue(xx, yy);
+							if(value >= 0 && value <= tolerance)
+								known = known + 1;
+							else if(value == -1)
+								unknown = unknown + 1;
+							else
+								barrier = barrier + 1;
+						}
+					}
+				}
+
+				if ((barrier == 0) && ((known/(known + unknown))*100 >= convergency) && (unknown >= 1))
+				{
+					double d = distance(start, p);
+					if (d > maxLength && d <= len)
+					{
+						maxLength = d;
+						max = p;
+						flag = true;
+					}
+				}
+
+			}
+		}
+	}
+
+	if(flag)
+		return max;
+	else
+		return start;
+}

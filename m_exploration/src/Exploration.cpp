@@ -442,6 +442,11 @@ void Exploration::newEndPoint(const int amount,const double convergecy, const in
 	end = maps.getEndPoint(start, first, amount, convergecy, tolerance);
 }
 
+void Exploration::newLocalEndPoint(const int amount,const double convergecy, const int tolerance, const double len)
+{
+	end = maps.getLocalEndPoint(start, first, amount, convergecy, tolerance, len);
+}
+
 Point Exploration::randomPoint() const
 {
 	Point p = maps.randomPoint();

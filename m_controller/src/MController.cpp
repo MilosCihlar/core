@@ -156,7 +156,7 @@ void MController::autonomousControl()
 
 	double fi_wanted =atan2(trajectory[L].getY() - odom.getPosition().getPoint().getY(), trajectory[L].getX() - odom.getPosition().getPoint().getX());
 	double fi_odom = odom.getPosition().getAngle().getZ();
-	double speed = sqrt(pow(trajectory[nearst].getX() - trajectory[nearst+10].getX(),2) + pow(trajectory[nearst].getY() - trajectory[nearst+10].getY(),2))/0.	2;
+	double speed = sqrt(pow(trajectory[nearst].getX() - trajectory[nearst+10].getX(),2) + pow(trajectory[nearst].getY() - trajectory[nearst+10].getY(),2))/0.2;
 
 	double signed_fi =Modulo((fi_wanted - fi_odom + M_PI),2*M_PI) -M_PI;
 	double delta_fi = abs(signed_fi);
@@ -181,6 +181,7 @@ void MController::autonomousControl()
 
 		request.setVelocity(vel);
 	}
+
 
 
 

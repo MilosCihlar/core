@@ -49,7 +49,10 @@ int main(int argc, char **argv)
 		{
 			if(f or sqrt(pow(explore.getStart().getX() - explore.getEnd().getX(),2) + pow(explore.getStart().getY() - explore.getEnd().getY(),2)) <= 4*ratio)
 			{
-				explore.newEndPoint(amount, convergency, tolerance);
+				explore.newLocalEndPoint(amount, convergency, tolerance, 6);
+				if ((explore.getStart().getX() == explore.getEnd().getX()) && (explore.getStart().getY() == explore.getEnd().getY()))
+					explore.newEndPoint(amount, convergency, tolerance);
+
 				f = false;
 			}
 
