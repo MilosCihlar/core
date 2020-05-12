@@ -133,3 +133,52 @@ unsigned int Odometry::getNumber()
 {
     return this->number;
 }
+
+double Odometry::getXSpeed()
+{
+	return x_speed;
+}
+double Odometry::getYSpeed()
+{
+	return y_speed;
+}
+
+double Odometry::getXSpeedLast()
+{
+	return x_speed_last;
+}
+
+double Odometry::getYSpeedLast()
+{
+	return y_speed_last;
+}
+
+double Odometry::getLinearSpeed()
+{
+	return lin_speed;
+}
+
+
+void Odometry::setXSpeed(double speed)
+{
+	x_speed = speed;
+}
+void Odometry::setYSpeed(double speed)
+{
+	y_speed = speed;
+}
+
+void Odometry::setX(double x)
+{
+	this->x = x;
+}
+
+void Odometry::setY(double y)
+{
+	this->y = y;
+}
+
+void Odometry::setTheta(double t)
+{
+	this->t = t;
+}

@@ -55,6 +55,8 @@ HectorMappingRos::HectorMappingRos()
 
   std::string mapTopic_ = "map";
 
+  private_nh_.param("probability", probability, false);
+
   private_nh_.param("pub_drawings", p_pub_drawings, false);
   private_nh_.param("pub_debug_output", p_pub_debug_output_, false);
   private_nh_.param("pub_map_odom_transform", p_pub_map_odom_transform_,true);
@@ -399,11 +401,17 @@ void HectorMappingRos::publishMap(MapPublisherContainer& mapPublisher, const hec
     {
       if(gridMap.isFree(i))
       {
-        data[i] = 0;
+        if (probability)
+          data[i] = 100*gridMap.getCellProbability(i);
+        else
+          data[i] = 0;      
       }
       else if (gridMap.isOccupied(i))
       {
-        data[i] = 100;
+        if(probability)
+          data[i] = 100*gridMap.getCellProbability(i);
+        else 
+          data[i] = 100;
       }
     }
 

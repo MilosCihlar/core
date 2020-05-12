@@ -1,49 +1,36 @@
 <launch>
-  <!-- Simulation settings-->
-  <arg name="scan" default="/m_robot/laser/scan" />
 
   <!-- Robot parametrs-->
   <arg name="world_frame" default="world_frame" />
-  <arg name="robot_name" default="m_robot"/>
-  <arg name="wheel_radius" default="0.05"/>
-  <arg name="span" default="0.2036" />
+  <arg name="robot_name" default="m_robot" />
+  <arg name="wheel_radius" default="0.05" />
+  <arg name="span" default="0.208" />
+  <arg name="pathTrackingCircle" default="0.5" />
+
+  <arg name="scan" default="/m_robot/laser/scan" />
+
+  <!-- Simulation localization-->
+  <arg name="SimulationLoc" default="false" />
 
   <!-- Start possition -->
   <arg name="x" default="0" />
   <arg name="y" default="0" />
   <arg name="z" default="0" />
 
+  <!-- Create silulation frame (correct set of position in simulation), shown in Rviz-->
+  <include file="$(find gazebo_loc)/launch/gazebo_loc.launch" >
+        <arg name = "world_frame" value = "$(arg world_frame)" />
+        <arg name = "robot_name" value = "$(arg robot_name)" />
+        <arg name = "freq" value = "50" /> 
+        <arg name = "simul" value = "$(arg SimulationLoc)" />
+  </include>
+  
   <!-- RPLidar A1 start -->
   <include file="$(find rplidar_ros)/launch/rplidar.launch">
       <arg name="scanTopic" value="$(arg scan)" />
       <arg name="lidarFrame" value="$(arg robot_name)" />
   </include>
 
-  <!-- Start m_controller for control velocity o robot-->
-  <include file="$(find m_controller)/launch/m_controller.launch" >
-        <arg name="radius" value="$(arg wheel_radius)" />
-        <arg name="freq" value="50" /> 
-        <arg name="span" value="$(arg span)"/>
-
-        <arg name="x" value="($arg x)" />
-        <arg name="y" value="($arg y)" />
-        <arg name="z" value="($arg z)" />
-  </include>
-
-  <!--Start odometry node-->
-  <include file="$(find m_odometry)/launch/m_odometry.launch" >
-        <arg name="x" value="$(arg x)" />
-        <arg name="y" value="$(arg y)" />
-        <arg name="z" value="$(arg z)" />
-
-        <arg name="robot_name" value="$(arg robot_name)" />
-        <arg name="world_frame" value="$(arg world_frame)" />
-        <arg name="freq" value="50" />
-        <arg name="span" value="$(arg span)" />
-        <arg name="radius" value="$(arg wheel_radius)" />
-        <arg name="simul" value="false"/>
-  </include> 
-
-   <node type="rviz" name="rviz" pkg="rviz" args="-span $(find m_robot)/rviz/m_robot.rviz" />
+  <!-- Start Rviz with m_robot.rviy settings-->   
 
 </launch>

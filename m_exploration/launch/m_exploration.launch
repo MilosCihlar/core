@@ -1,19 +1,22 @@
 <launch>
-    <arg name = "ratio" default="0.5"/>       <!-- Distance of two nodes -->
-    <arg name = "smooth" default="0.5" />
-    <arg name = "convergency" default="90" />  <!-- < 0,99 > Percentage of free cells around point-->
-    <arg name = "tolerance" default ="5" />    <!-- <0, tolerance> is free space (max 99)-->
-    <arg name = "amount" default="10" />       <!-- Depend on resolution of map and size of robot: resolution*amount should be straight span of robot; resolution is 0.05m-->
+    <!-- Parametrs of autonomous exploration-->
+    <arg name = "ratio" default="0.3"/>       <!-- Distance of two nodes -->
+    <arg name = "convergency" default="80" />  <!-- < 0,99 > Percentage of free cells around point-->
+    <arg name = "tolerance" default ="30" />    <!-- <0, tolerance> is free space (max 90)-->
+    <arg name = "amount" default="12" />       <!-- Depend on resolution of map and size of robot: resolution*amount should be straight span of robot; resolution is 0.05m-->
 
-    <arg name = "speed" default="0.2" />       <!-- Speed of robot in meters per seconds -->
+    <!-- Average robot speed -->
+    <arg name = "speed" default="0.5" />       <!-- Speed of robot in meters per seconds -->
     
+    <!-- Common settings -->
     <arg name = "freq" default="5"/>           <!-- Frequency of search path -->
     <arg name = "simul" default="true" />
+    <arg name = "LidarRange" default = "6" />
     <arg name = "world_frame" default="world_frame" />
+
 
     <node name="m_exploration" pkg="m_exploration" type="m_exploration" respawn="false" output="screen" >
         <param name="ratio" value="$(arg ratio)"/>
-        <param name="smooth" value="$(arg smooth)"/>
         <param name="tolerance" value="$(arg tolerance)"/>
         <param name="convergency" value="$(arg convergency)"/>
         <param name="amount" value="$(arg amount)"/>
@@ -22,6 +25,7 @@
 
         <param name="freq" value="$(arg freq)" />
         <param name="simul" value="$(arg simul)" />
+        <param name="LidarRange" value="$(arg LidarRange)" />
         <param name="world_frame" value="$(arg world_frame)" />
 
         <remap from="s_odometry" to="/m_robot/odometry" />

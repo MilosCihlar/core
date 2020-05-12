@@ -76,6 +76,14 @@ public:
     return concreteGridFunctions.getGridProbability(this->getCell(index));
   }
 
+  float getCellProbability(int index) const
+  {
+    float logOddsVal = (this->getCell(index).getValue());
+
+    float odds = exp(logOddsVal);
+    return odds / (odds + 1.0f);
+  }
+
   bool isOccupied(int xMap, int yMap) const
   {
     return (this->getCell(xMap,yMap).isOccupied());

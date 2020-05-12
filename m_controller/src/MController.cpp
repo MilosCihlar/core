@@ -72,13 +72,25 @@ void MController::subscribeOdometry(const nav_msgs::Odometry &odometry)
 /*BUG: Dodelat filtr zadane hodnoty -> v ramci testovani jen nastavi pozadovanou hodnotu*/
 void MController::setpointFilter()
 { 
-    actual.setVelocity(request.getVelocity());
+		double actX = actual.getVelocity().getPoint().getX();
+	double actZ = actual.getVelocity().getAngle().getZ();
+
+	double reqX = request.getVelocity().getPoint().getX();
+	double reqZ = request.getVelocity().getAngle().getZ();
+
+	actX = 0.95*actX + 0.05*reqX;
+	actZ = 0.95*actZ + 0.05*reqZ;
+
+	Point lin(actX,0,0);
+	Point ang(0,0,actZ);
+	Position vel(lin, ang);
+
+	actual.setVelocity(vel);
 }
 
 void MController::sendCommand()
 {
 	double sec = ros::Time::now().toSec();
-	std::cout << "frekvence> " << 1/(sec - lastTime) << std::endl;
 
 	std_msgs::Float64 left;
 	left.data = actual.getLeftWheel().newMove(sec - lastTime);
@@ -158,7 +170,7 @@ void MController::autonomousControl()
 	double fi_odom = odom.getPosition().getAngle().getZ();
 	double speed = sqrt(pow(trajectory[nearst].getX() - trajectory[nearst+10].getX(),2) + pow(trajectory[nearst].getY() - trajectory[nearst+10].getY(),2))/0.2;
 
-	double signed_fi =Modulo((fi_wanted - fi_odom + M_PI),2*M_PI) -M_PI;
+	double signed_fi = Modulo((fi_wanted - fi_odom + M_PI),2*M_PI) -M_PI;
 	double delta_fi = abs(signed_fi);
 
 	// uhel a vzdalenost je v poradku
@@ -176,11 +188,23 @@ void MController::autonomousControl()
 		if (angular > speed)
 			angular = speed;
 
+		if(angular < -speed)
+			angular = -speed;
+
 		Point ang(0,0, angular);
 		Position vel(lin, ang);
 
 		request.setVelocity(vel);
 	}
+	else
+	{
+		Point lin(0,0,0);
+		Point ang(0,0, 0);
+		Position vel(lin, ang);
+
+		request.setVelocity(vel);
+	}
+	
 
 
 

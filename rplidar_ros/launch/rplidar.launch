@@ -1,6 +1,6 @@
 <launch>
-    <arg name="scanTopic" default="/scan" />
-    <arg name="lidarFrame" default="laser" />
+    <arg name="scanTopic" default="/m_robot/laser/scan" />
+    <arg name="lidarFrame" default="m_robot" />
 
     <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
     <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>

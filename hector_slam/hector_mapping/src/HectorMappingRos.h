@@ -158,6 +158,8 @@ protected:
   std::string p_pose_update_topic_;
   std::string p_twist_update_topic_;
 
+  bool probability;
+
   bool p_pub_drawings;
   bool p_pub_debug_output_;
   bool p_pub_map_odom_transform_;

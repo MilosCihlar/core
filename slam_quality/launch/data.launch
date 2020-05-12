@@ -1,0 +1,8 @@
+<launch>
+    <node name="slam_quality" pkg="slam_quality" type="slam_quality" respawn="false" output="screen" >
+        <remap from="s_map" to="/map" />
+        <remap from="s_realPath" to="/gazebo/realTrajectory" />
+        <remap from="s_slamPath" to="/trajectory" />
+    </node>
+
+</launch>

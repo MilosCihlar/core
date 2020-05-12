@@ -35,7 +35,6 @@ private:
 
 	double param;
 	double speed;
-	double smooth;
 
 	std::string worldFrame;
 
@@ -50,7 +49,7 @@ private:
 	int* addNumberVisualization(int* array, const int length, const int i) const; 
 public:
 	/*C'tors adn D'tors*/
-	Exploration(ros::NodeHandle *nh, double param, double speed, double smooth, std::string world_frame);
+	Exploration(ros::NodeHandle *nh, double param, double speed, std::string world_frame);
 	Exploration(double param, double speed, std::string world_frame);
 	~Exploration();
 
@@ -78,6 +77,8 @@ public:
 	bool getMapFlag() const;
 	Point getEnd() const;
 	Point getStart() const;
+
+	Point getFirst() const;
 
 	Map getMap();
 

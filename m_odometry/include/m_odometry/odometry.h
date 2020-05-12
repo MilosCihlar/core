@@ -41,6 +41,19 @@ class Odometry
         void calculateOdometry(double l_last_pos, double l_actual_pos, double r_last_pos, double r_actual_pos, double time);
         void getVelocity(double* vel);
         void getPosition(double* pos);
+
+        double getXSpeed();
+        double getYSpeed();
+        double getXSpeedLast();
+        double getYSpeedLast();
+		double getLinearSpeed();
+
+		void setXSpeed(double speed);
+		void setYSpeed(double speed);
+        void setX(double x);
+        void setY(double y);
+        void setTheta(double z);
+
         double getTime();
         unsigned int getNumber();
         

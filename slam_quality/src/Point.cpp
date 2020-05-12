@@ -1,12 +1,12 @@
 #include <iostream>
-#include "m_exploration/Point.h"
+#include "slam_quality/Point.h"
 
 // c'tors and d'tors
-Point::Point() :x(0), y(0), z(0) {}
+Point::Point() :x(0), y(0), z(0) { /*std::cout << "Konstruktor point 0" << std::endl;*/}
 
-Point::Point(const double& x, const double& y, const double& z) : x(x), y(y), z(z) {}
+Point::Point(const double& x, const double& y, const double& z) : x(x), y(y), z(z) {/* std::cout << "Konstruktor point 1" << std::endl;*/}
 
-Point::Point(const double& x) : x(x), y(x), z(x) { }
+Point::Point(const double& x) : x(x), y(x), z(x) { /*std::cout << "Konstruktor point 2" << std::endl;*/}
 
 Point::Point(const Point& point)
 {

@@ -24,6 +24,7 @@
         <param name="simul" value="$(arg simul)"/>
     
         <remap from="sub_joint_states" to="/m_robot/joint_states" />
+        <remap from="s_trajectory" to="/trajectory" />
         <remap from="pub_odometry" to="/m_robot/odometry"/>
     </node> 
 
